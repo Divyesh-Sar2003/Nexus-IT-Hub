@@ -30,7 +30,9 @@ import {
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { signOutAction } from "@/app/(auth)/login/actions";
 
 const navigationGroups: {
   label: string;
@@ -80,7 +82,13 @@ function isActive(href: string, pathname: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  user,
+}: {
+  children: React.ReactNode;
+  user?: { displayName: string; email: string; roles: string[] };
+}) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -92,16 +100,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    const applyTheme = (nextTheme: Theme) => {
-      root.dataset.theme = nextTheme;
-      if (nextTheme === "system") {
+    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
+    const applyTheme = () => {
+      root.dataset.theme = theme;
+      const isDark = theme === "dark" || (theme === "system" && systemTheme.matches);
+      root.classList.toggle("dark", isDark);
+      if (theme === "system") {
         root.style.colorScheme = "light dark";
       } else {
-        root.style.colorScheme = nextTheme;
+        root.style.colorScheme = theme;
       }
     };
 
-    applyTheme(theme);
+    applyTheme();
+    systemTheme.addEventListener("change", applyTheme);
+    return () => systemTheme.removeEventListener("change", applyTheme);
   }, [theme]);
 
   useEffect(() => {
@@ -335,15 +348,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            <button
+            <Button
               aria-label={`Theme: ${theme}. Click to change.`}
               className="icon-button theme-button"
               onClick={cycleTheme}
+              size="icon"
               title={`Theme: ${theme}`}
               type="button"
+              variant="ghost"
             >
               <ThemeIcon size={18} strokeWidth={1.75} />
-            </button>
+            </Button>
 
             <div className="popover-anchor">
               <button
@@ -386,20 +401,41 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 type="button"
               >
                 <span className="profile-avatar"><Users size={15} /></span>
-                <span className="profile-name">Not signed in</span>
+                <span className="profile-name">{user?.displayName ?? "Not signed in"}</span>
                 <ChevronDown className="profile-chevron" size={14} />
               </button>
               {popover === "profile" && (
                 <div className="topbar-popover profile-popover">
-                  <div className="profile-popover-title">Preview workspace</div>
-                  <p>Authentication is not connected yet.</p>
-                  <Link
-                    href="/settings"
-                    className="profile-settings-link"
-                    onClick={() => setPopover(null)}
-                  >
-                    Workspace setup <ChevronRight size={14} />
-                  </Link>
+                  {user ? (
+                    <>
+                      <div className="profile-popover-title">{user.email}</div>
+                      <p>{user.roles.join(", ") || "No roles assigned"}</p>
+                      <form action={signOutAction}>
+                        <button className="profile-settings-link" type="submit">
+                          Sign out <ChevronRight size={14} />
+                        </button>
+                      </form>
+                    </>
+                  ) : (
+                    <>
+                      <div className="profile-popover-title">Preview workspace</div>
+                      <p>Authentication is not connected yet.</p>
+                      <Link
+                        href="/login"
+                        className="profile-settings-link"
+                        onClick={() => setPopover(null)}
+                      >
+                        Sign in <ChevronRight size={14} />
+                      </Link>
+                      <Link
+                        href="/settings"
+                        className="profile-settings-link"
+                        onClick={() => setPopover(null)}
+                      >
+                        Workspace setup <ChevronRight size={14} />
+                      </Link>
+                    </>
+                  )}
                 </div>
               )}
             </div>

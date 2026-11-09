@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Suspense } from "react";
-import { AppShell } from "@/components/app-shell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,11 +32,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       suppressHydrationWarning
     >
-      <body>
-        <Suspense fallback={<div className="app-shell-loading" aria-hidden="true" />}>
-          <AppShell>{children}</AppShell>
-        </Suspense>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
