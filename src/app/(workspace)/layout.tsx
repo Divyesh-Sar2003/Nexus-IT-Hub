@@ -32,6 +32,7 @@ async function WorkspaceGate({ children }: { children: ReactNode }) {
         displayName: principal.displayName,
         email: principal.email,
         roles: principal.roles,
+        permissions: principal.permissions,
       }}
     >
       {children}

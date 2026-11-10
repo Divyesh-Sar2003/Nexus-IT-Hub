@@ -2,7 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import {
+  isDatabaseConfigured,
+  isSupabaseConfigured,
+} from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type AuthFormState = {
@@ -38,9 +41,9 @@ export async function signInAction(
   if (!parsed.success) {
     return { message: "Enter a valid email address and password." };
   }
-  if (!isSupabaseConfigured()) {
+  if (!isSupabaseConfigured() || !isDatabaseConfigured()) {
     return {
-      message: "Supabase is not configured. Add the required values to your environment file.",
+      message: "Authentication and database settings are not configured. Check your environment file.",
     };
   }
 

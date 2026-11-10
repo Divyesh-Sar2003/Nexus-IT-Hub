@@ -10,7 +10,9 @@ import {
   LockKeyhole,
 } from "lucide-react";
 import { AppWindow } from "lucide-react";
-import { moduleDetails, type ModuleSlug } from "@/lib/modules";
+import { moduleDetails, moduleViewPermissions, type ModuleSlug } from "@/lib/modules";
+import { requirePermission } from "@/lib/authorization";
+import { isDatabaseConfigured, isSupabaseConfigured } from "@/lib/supabase/config";
 
 function isModuleSlug(value: string): value is ModuleSlug {
   return Object.hasOwn(moduleDetails, value);
@@ -33,6 +35,10 @@ async function ModulePageContent({
 }) {
   const { module: slug } = await params;
   if (!isModuleSlug(slug)) notFound();
+
+  if (isSupabaseConfigured() && isDatabaseConfigured()) {
+    await requirePermission(moduleViewPermissions[slug]);
+  }
 
   const moduleInfo = moduleDetails[slug];
 

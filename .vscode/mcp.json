@@ -1,0 +1,15 @@
+{
+	"servers": {
+		"supabase": {
+			"type": "http",
+			"url": "https://mcp.supabase.com/mcp?project_ref=yudpbdbuoeaysourdiij&read_only=true&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching%2Cfeedback%2Cnotebooks"
+		},
+		"my-mcp-server-bf6e57a2": {
+			"url": "https://mcp.supabase.com/mcp?project_ref=yudpbdbuoeaysourdiij&read_only=true&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching%2Cfeedback%2Cnotebooks",
+			"type": "http"
+		}
+	},
+	"inputs": [
+    
+  ]
+}

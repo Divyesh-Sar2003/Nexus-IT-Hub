@@ -134,3 +134,17 @@ export const moduleDetails = {
 } as const;
 
 export type ModuleSlug = keyof typeof moduleDetails;
+
+export const moduleViewPermissions: Record<ModuleSlug, string> = {
+  assets: "assets.view",
+  employees: "employees.view",
+  network: "firewall.view",
+  inventory: "inventory.view",
+  purchases: "purchase.view",
+  software: "software.view",
+  finance: "finance.view",
+  maintenance: "maintenance.view",
+  reports: "reports.view",
+  audit: "audit_logs.view",
+  settings: "users.manage",
+};

@@ -14,7 +14,21 @@ and an active organization user profile.
 Email/password sign-in, password recovery, session refresh, protected workspace
 routes, and server-side role/permission lookup are implemented. New accounts
 must be provisioned by an organization administrator; public registration is
-disabled. Business CRUD flows and live dashboard aggregates are still pending.
+disabled. The dashboard and module routes enforce their database-backed view
+permissions, and navigation only shows modules granted to the signed-in user.
+
+The hardware asset module now has an organization-scoped register with search
+and status filters, category setup, asset create/edit, technical specifications,
+soft archive, and lifecycle/audit history. Employee records can be created,
+edited, deactivated/reactivated, and assigned assets can be issued and returned
+with a preserved assignment trail. Employee department/location changes and
+deactivation are blocked while assets remain assigned. These workflows use
+server-side `assets.*` and `employees.*` permissions.
+
+The executive dashboard still has empty states rather than live aggregates.
+Live database operations cannot be exercised in the current environment:
+the configured database host does not resolve, and `DIRECT_URL` is not set.
+No migration has been applied to a live project.
 
 The repository also contains the initial Prisma/PostgreSQL schema, Supabase
 client factories, and a tenant-isolated migration. The migration has not been
@@ -80,6 +94,11 @@ authorize, and scope queries to the organization.
 - `src/components/dashboard.tsx` contains the executive overview.
 - `src/app/(workspace)/[module]/page.tsx` provides the shared module workspace
   view behind the authenticated workspace layout.
+- `src/app/(workspace)/assets/` contains the asset register, profile editor,
+  soft archive, lifecycle history, and organization-scoped server actions.
+- `src/app/(workspace)/employees/` contains the employee directory, department
+  setup, and lifecycle actions; asset assignment/return actions are in the
+  asset module.
 - `src/app/(auth)/login/` contains sign-in and password-recovery actions and UI.
 - `src/proxy.ts` refreshes and verifies Supabase sessions for protected routes.
 - `src/lib/modules.ts` describes the supported application modules.

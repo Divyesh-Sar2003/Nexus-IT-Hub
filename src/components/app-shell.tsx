@@ -36,30 +36,42 @@ import { signOutAction } from "@/app/(auth)/login/actions";
 
 const navigationGroups: {
   label: string;
-  items: { label: string; href: string; icon: LucideIcon }[];
+  items: {
+    label: string;
+    href: string;
+    icon: LucideIcon;
+    permission: string;
+  }[];
 }[] = [
   {
     label: "WORKSPACE",
-    items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard }],
+    items: [
+      {
+        label: "Dashboard",
+        href: "/",
+        icon: LayoutDashboard,
+        permission: "dashboard.view",
+      },
+    ],
   },
   {
     label: "MANAGE",
     items: [
-      { label: "Assets", href: "/assets", icon: Laptop },
-      { label: "People", href: "/employees", icon: Users },
-      { label: "Network & firewall", href: "/network", icon: Shield },
-      { label: "Inventory", href: "/inventory", icon: Boxes },
-      { label: "Purchases", href: "/purchases", icon: ShoppingCart },
-      { label: "Software & licenses", href: "/software", icon: AppWindow },
-      { label: "IT finance", href: "/finance", icon: Gauge },
-      { label: "Support & maintenance", href: "/maintenance", icon: Wrench },
+      { label: "Assets", href: "/assets", icon: Laptop, permission: "assets.view" },
+      { label: "People", href: "/employees", icon: Users, permission: "employees.view" },
+      { label: "Network & firewall", href: "/network", icon: Shield, permission: "firewall.view" },
+      { label: "Inventory", href: "/inventory", icon: Boxes, permission: "inventory.view" },
+      { label: "Purchases", href: "/purchases", icon: ShoppingCart, permission: "purchase.view" },
+      { label: "Software & licenses", href: "/software", icon: AppWindow, permission: "software.view" },
+      { label: "IT finance", href: "/finance", icon: Gauge, permission: "finance.view" },
+      { label: "Support & maintenance", href: "/maintenance", icon: Wrench, permission: "maintenance.view" },
     ],
   },
   {
     label: "INSIGHTS",
     items: [
-      { label: "Reports", href: "/reports", icon: FileText },
-      { label: "Audit log", href: "/audit", icon: FileClock },
+      { label: "Reports", href: "/reports", icon: FileText, permission: "reports.view" },
+      { label: "Audit log", href: "/audit", icon: FileClock, permission: "audit_logs.view" },
     ],
   },
 ];
@@ -87,7 +99,12 @@ export function AppShell({
   user,
 }: {
   children: React.ReactNode;
-  user?: { displayName: string; email: string; roles: string[] };
+  user?: {
+    displayName: string;
+    email: string;
+    roles: string[];
+    permissions: string[];
+  };
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -135,12 +152,24 @@ export function AppShell({
     return () => window.removeEventListener("keydown", handleKeyboardShortcut);
   }, []);
 
+  const visibleNavigation = useMemo(
+    () =>
+      navigationGroups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter(
+            (item) => !user || user.permissions.includes(item.permission),
+          ),
+        }))
+        .filter((group) => group.items.length > 0),
+    [user],
+  );
   const searchableNavigation = useMemo(
     () =>
-      navigationGroups.flatMap((group) => group.items).filter((item) =>
+      visibleNavigation.flatMap((group) => group.items).filter((item) =>
         item.label.toLowerCase().includes(query.trim().toLowerCase()),
       ),
-    [query],
+    [query, visibleNavigation],
   );
 
   function cycleTheme() {
@@ -185,15 +214,15 @@ export function AppShell({
           <div className="workspace-info">
             <span className="workspace-name">Workspace</span>
             <span className="workspace-state">
-              <span className="status-dot status-dot-muted" />
-              Not connected
+            <span className={`status-dot${user ? "" : " status-dot-muted"}`} />
+            {user ? "Connected" : "Not connected"}
             </span>
           </div>
           <ChevronDown size={15} className="workspace-chevron" />
         </div>
 
         <nav className="sidebar-navigation" aria-label="Main navigation">
-          {navigationGroups.map((group) => (
+          {visibleNavigation.map((group) => (
             <div className="nav-group" key={group.label}>
               <p className="nav-group-label">{group.label}</p>
               {group.items.map(({ label, href, icon: Icon }) => {
@@ -219,7 +248,7 @@ export function AppShell({
         </nav>
 
         <div className="sidebar-bottom">
-          <Link
+          {(!user || user.permissions.includes("users.manage")) && <Link
             className={`nav-link${isActive("/settings", pathname) ? " nav-link-active" : ""}`}
             href="/settings"
             onClick={() => setMobileOpen(false)}
@@ -227,7 +256,7 @@ export function AppShell({
           >
             <Settings2 size={18} strokeWidth={1.75} />
             <span className="nav-link-label">Settings</span>
-          </Link>
+          </Link>}
           <div className="sidebar-help">
             <div className="help-icon"><CircleHelp size={17} /></div>
             <div className="help-copy">
@@ -443,19 +472,24 @@ export function AppShell({
         </header>
 
         <main className="main-content">
-          <div className="preview-notice" role="status">
-            <span className="preview-notice-icon"><Archive size={14} /></span>
-            <span>
-              <strong>Frontend preview</strong>
-              <span className="preview-notice-separator">·</span>
-              Data and sign-in are not connected. No sample records are shown.
-            </span>
-            <Link href="/settings" className="preview-notice-link">Workspace setup <ChevronRight size={14} /></Link>
-          </div>
+          {!user && (
+            <div className="preview-notice" role="status">
+              <span className="preview-notice-icon"><Archive size={14} /></span>
+              <span>
+                <strong>Frontend preview</strong>
+                <span className="preview-notice-separator">·</span>
+                Data and sign-in are not connected. No sample records are shown.
+              </span>
+              <Link href="/settings" className="preview-notice-link">Workspace setup <ChevronRight size={14} /></Link>
+            </div>
+          )}
           {children}
           <footer className="app-footer">
             <span>© 2026 Nexus IT Hub</span>
-            <span><span className="footer-status-dot" /> Frontend preview</span>
+            <span>
+              <span className="footer-status-dot" />
+              {user ? "Authenticated workspace" : "Frontend preview"}
+            </span>
             <span>Version 1.0</span>
           </footer>
         </main>
